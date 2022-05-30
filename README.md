@@ -847,8 +847,7 @@ public class TestEnctrance {
 ## 6、建造者模式
 
 这部分在之前的博客中有详细介绍：
-
-[0006 ****优雅与高效的java编程手记(1-20)****](https://www.notion.so/0006-java-1-20-3117c990b7694ef2b71c075a8bbcd535) 
+https://gendlee.github.io/0006-java1-20-3117c9.html
 
 ## 7、文中代码
 
