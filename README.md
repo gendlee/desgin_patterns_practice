@@ -857,3 +857,1053 @@ https://gendlee.github.io/0006-java1-20-3117c9.html
 
 ## 参考文献
 
+# 0011 设计模式之结构型模式
+
+date: June 5, 2022
+description: 介绍和实践了结构型模式。
+inList: Yes
+inMenu: No
+publish: Yes
+tags: JAVA, 设计模式
+template: post
+
+本节将介绍设计模式中的另一个大类——结构性模式。
+
+- **适配器模式(Adapter)**重要程度：4
+- **桥接模式(Bridge)**重要程度：3
+- **组合模式(Composite)**重要程度：4
+- **装饰模式(Decorator)**重要程度：3
+- **外观模式(Facade)**重要程度：5
+- **享元模式(Flyweight)**重要程度：1
+- **代理模式(Proxy)**重要程度：4
+
+# 1、适配器模式
+
+## 1.1 定义
+
+<aside>
+🥝 适配器模式(Adapter Pattern) ：将一个接口转换成客户希望的另一个接口，适配器模式使接口不兼容的那些类可以一起工作，其别名为包装器(Wrapper)。适配器模式既可以作为类结构型模式，也可以作为对象结构型模式。
+
+</aside>
+
+适配器模式包含如下角色：
+
+- Target：目标抽象类     即我们可以直接使用的类
+- Adapter：适配器类
+- Adaptee：适配者类    即我们不能直接使用的类
+- Client：客户类
+
+适配器模式有对象适配器和类适配器两种实现：
+
+- **对象适配器**：
+
+![Adapter.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/Adapter.jpg)
+
+- **类适配器**：
+
+![Adapter_classModel.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/Adapter_classModel.jpg)
+
+- **时序图**
+
+![seq_Adapter.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/seq_Adapter.jpg)
+
+## 1.2 实践
+
+我们来看一下代码实现。
+
+首先编写 **Target 接口**(这是客户所期待的接口。目标可以是具体的或抽象的类，也可以是接口)代码如下：
+
+```java
+package adapter;
+/**
+*@Desc: 目标类接口
+*/
+public interface Target {
+    public void request();
+}
+```
+
+需要适配的类Adaptee代码如下：
+
+```java
+package adapter;
+
+/**
+ * 需要适配的类
+ */
+public class Adaptee {
+    public void specialRequest() {
+        System.out.println("specialRequest() | this is a real request from adaptee!");
+    }
+}
+```
+
+**Adapter**(通过在内部包装一个Adaptee对象，把源对象接口转换成目标接口)代码如下:
+
+```java
+package adapter;
+
+/**
+ * 对象适配器
+ */
+public class Adapter implements Target {
+    private Adaptee adaptee = new Adaptee();
+
+    @Override
+    public void request() {
+        // 通过specialRequest 对 request 进行适配
+        adaptee.specialRequest();
+    }
+}
+```
+
+ 因此我们使用的时候如下：
+
+```java
+package adapter;
+
+import org.junit.Test;
+
+public class TestEntrance {
+    @Test
+    public void test() {
+        Target target = new Adapter();
+        target.request();
+    }
+}
+```
+
+我们来测试一下：
+
+```java
+package adapter;
+
+import org.junit.Test;
+
+public class TestEntrance {
+    @Test
+    public void test() {
+        Target target = new Adapter();
+        target.request();
+    }
+}
+```
+
+输出：
+
+> specialRequest() | this is a real request from adaptee!
+> 
+
+另一种实现方式是使用`**类适配器**`，与`**对象适配器**`模式不同的是，类适配器模式是使用继承关系连接到Adaptee类，而不是使用委派关系连接到Adaptee类。
+
+```java
+package adapter;
+
+/**
+*@Desc: 类适配器
+*/
+public class Adapter2 extends Adaptee implements Target {
+    @Override
+    public void request() {
+        this.specialRequest();
+    }
+}
+```
+
+测试一下：
+
+```java
+package adapter;
+
+import org.junit.Test;
+
+public class TestEntrance {
+    @Test
+    public void testAdapter2() {
+        Target target = new Adapter2();
+        target.request();
+    }
+}
+```
+
+输出与对象适配器完全一致。
+
+## 1.3 优点
+
+- 将目标类和适配者类解耦，通过引入一个适配器类来重用现有的适配者类，而无须修改原有代码。
+- 增加了类的透明性和复用性，将具体的实现封装在适配者类中，对于客户端类来说是透明的，而且提高了适配者的复用性。
+- 灵活性和扩展性都非常好，通过使用配置文件，可以很方便地更换适配器，也可以在不修改原有代码的基础上增加新的适配器类，完全符合“开闭原则”。
+
+**类适配器模式还具有如下优点：**
+
+由于适配器类是适配者类的子类，因此可以在适配器类中置换一些适配者的方法，使得适配器的灵活性更强。
+
+**对象适配器模式还具有如下优点：**一个对象适配器可以把多个不同的适配者适配到同一个目标，也就是说，同一个适配器可以把适配者类和它的子类都适配到目标接口。
+
+## ****1.4 缺点****
+
+**类适配器模式的缺点如下：**
+
+对于Java、C#等不支持多重继承的语言，一次最多只能适配一个适配者类，而且目标抽象类只能为抽象类，不能为具体类，其使用有一定的局限性，不能将一个适配者类和它的子类都适配到目标接口。
+
+**对象适配器模式的缺点如下：**与类适配器模式相比，要想置换适配者类的方法就不容易。如果一定要置换掉适配者类的一个或多个方法，就只好先做一个适配者类的子类，将适配者类的方法置换掉，然后再把适配者类的子类当做真正的适配者进行适配，实现过程较为复杂。
+
+# ****2. 桥接模式****
+
+考虑这样的场景：
+
+要绘制矩形、圆形、椭圆、正方形，我们至少需要4个形状类，但是如果绘制的图形需要具有不同的颜色，如红色、绿色、蓝色等，此时至少有如下两种设计方案：
+
+- 第一种设计方案是为每一种形状都提供一套各种颜色的版本。
+- 第二种设计方案是根据实际需要对形状和颜色进行组合
+
+对于有两个变化维度（即两个变化的原因）的系统，`**采用方案二来进行设计系统中类的个数更少，且系统扩展更为方便**`。设计方案二即是桥接模式的应用。**`桥接模式将继承关系转换为关联关系`**，从而降低了类与类之间的耦合，减少了代码编写量。
+
+## 2.1 定义
+
+<aside>
+🥝 桥接模式(Bridge Pattern)：**将抽象部分与它的实现部分分离，使它们都可以独立地变化**。它是一种对象结构型模式，又称为柄体(Handle and Body)模式或接口(Interface)模式。
+
+</aside>
+
+桥接模式包含如下角色：
+
+- Abstraction：抽象类
+- RefinedAbstraction：**扩充抽象类**
+- Implementor：实现类接口
+- ConcreteImplementor：具体实现类
+
+- **UML图**
+
+![Bridge.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/Bridge.jpg)
+
+- **时序图**
+
+![seq_Bridge.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/seq_Bridge.jpg)
+
+## 2.2 实践
+
+我们用桥接模式来实现开头中提到的案例：
+
+- 绘制3种图型：矩形、圆形、椭圆
+- 可绘制的颜色有3种：红色、绿色、蓝色
+
+如何用一个桥接模式来实现呢？
+
+- 颜色接口：
+
+```java
+package bridgepattern;
+
+/**
+*@Desc: 对传入的形状上色接口
+*/
+public interface Color {
+    public void paint(String shape);
+}
+```
+
+- 形状的抽象类
+
+```java
+package bridgepattern;
+
+/**
+*@Desc: 形状抽象类
+*/
+public abstract class Shape {
+    // 颜色
+    Color color;
+
+    // 绘制颜色的抽象方法
+    public abstract void draw();
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
+    public Color getColor() {
+        return color;
+    }
+}
+```
+
+下面分别实现不同颜色：
+
+- 绿色：
+
+```java
+package bridgepattern.color;
+
+import bridgepattern.Color;
+
+public class Green implements Color {
+    @Override
+    public void paint(String shape) {
+        System.out.println("绿色的" + shape);
+    }
+}
+```
+
+- 红色
+
+```java
+package bridgepattern.color;
+
+import bridgepattern.Color;
+
+public class Red implements Color {
+    @Override
+    public void paint(String shape) {
+        System.out.println("红色的" + shape);
+    }
+}
+```
+
+- 蓝色
+
+```java
+package bridgepattern.color;
+
+import bridgepattern.Color;
+
+public class Blue implements Color {
+    @Override
+    public void paint(String shape) {
+        System.out.println("蓝色的" + shape);
+    }
+}
+```
+
+下面分别实现不同形状：
+
+- 圆
+
+```java
+package bridgepattern.shape;
+
+import bridgepattern.Shape;
+
+public class Circle extends Shape {
+    @Override
+    public void draw() {
+        getColor().paint("圆");
+    }
+}
+```
+
+- 椭圆
+
+```java
+package bridgepattern.shape;
+
+import bridgepattern.Shape;
+
+public class Ellipse extends Shape {
+    @Override
+    public void draw() {
+        getColor().paint("椭圆");
+    }
+}
+```
+
+- 矩形
+
+```java
+package bridgepattern.shape;
+
+import bridgepattern.Shape;
+
+public class Rectangle extends Shape {
+    @Override
+    public void draw() {
+        getColor().paint("矩形");
+    }
+}
+```
+
+我们要绘制一个绿色的圆和椭圆：
+
+```java
+package bridgepattern;
+
+import bridgepattern.color.Green;
+import bridgepattern.shape.Circle;
+import bridgepattern.shape.Ellipse;
+import org.junit.Test;
+
+public class TestEntrance {
+    @Test
+    public void testGreen() {
+        // 创建一个绿色
+        Color green = new Green();
+        // 创建一个圆形/椭圆
+        Shape ellipse = new Ellipse();
+        Shape circle = new Circle();
+        // 上色
+        ellipse.setColor(green);
+        circle.setColor(green);
+
+        // 打印
+        ellipse.draw();
+        circle.draw();
+    }
+}
+```
+
+执行结果：
+
+> 绿色的椭圆
+绿色的圆
+> 
+
+如果要绘制蓝色的矩形：
+
+```java
+package bridgepattern;
+
+import bridgepattern.color.Blue;
+import bridgepattern.shape.Rectangle;
+import org.junit.Test;
+
+public class TestEntrance {
+    @Test
+    public void testBlue() {
+        // 创建一个蓝色
+        Color blue = new Blue();
+        // 创建一个矩形
+        Shape rectangle = new Rectangle();
+        // 上色
+        rectangle.setColor(blue);
+        
+        // 打印
+        rectangle.draw();
+    }
+}
+```
+
+执行结果：
+
+> 蓝色的矩形
+> 
+
+## 2.3 使用场景举例
+
+<aside>
+🥝 如果需要开发一个跨平台视频播放器，可以在不同操作系统平台（如Windows、Linux、Unix等）上播放多种格式的视频文件，常见的视频格式包括MPEG、RMVB、AVI、WMV等。就可以使用`**桥接模式**`设计该播放器。
+
+</aside>
+
+## **2.4 优点**
+
+桥接模式的优点:
+
+- 分离抽象接口及其实现部分。
+- 桥接模式有时类似于多继承方案，但是多继承方案违背了类的单一职责原则（即一个类只有一个变化的原因），复用性比较差，而且多继承结构中类的个数非常庞大，`**桥接模式是比多继承方案更好的解决方法**`。
+- 桥接模式提高了系统的可扩充性，在两个变化维度中任意扩展一个维度，都不需要修改原有系统。实现细节对客户透明，可以对用户隐藏实现细节。
+
+## **2.5 缺点**
+
+桥接模式的缺点:
+
+- 桥接模式的引入会增加系统的理解与设计难度，由于聚合关联关系建立在抽象层，要求开发者针对抽象进行设计与编程。
+- 桥接模式要求`**正确识别出系统中两个独立变化的维度**`，因此其使用范围具有一定的局限性。
+
+# 3、装饰者模式
+
+一般有两种方式可以实现给一个类或对象增加行为：
+
+- 继承机制，使用继承机制是给现有类添加功能的一种有效途径，通过继承一个现有类可以使得子类在拥有自身方法的同时还拥有父类的方法。**但是这种方法是静态的，用户不能控制增加行为的方式和时机**。
+- 关联机制，即**将一个类的对象嵌入另一个对象中**，由另一个对象来决定是否调用嵌入对象的行为以便扩展自己的行为，我们称这个嵌入的对象为**装饰器**(Decorator)
+
+## 3.1 定义
+
+<aside>
+🥝 装饰模式(Decorator Pattern) ：动态地给一个对象增加一些额外的职责(Responsibility)，就增加对象功能来说，装饰模式比生成子类实现更为灵活。其别名也可以称为包装器(Wrapper)，与适配器模式的别名相同，但它们适用于不同的场合。根据翻译的不同，装饰模式也有人称之为“油漆工模式”，它是一种对象结构型模式。
+
+</aside>
+
+装饰模式包含如下角色：
+
+- Component: 抽象构件
+- ConcreteComponent: 具体构件
+- Decorator: 抽象装饰类
+- ConcreteDecorator: 具体装饰类
+
+- **UML图**
+
+![Decorator.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/Decorator.jpg)
+
+- **时序图**
+
+![seq_Decorator.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/seq_Decorator.jpg)
+
+## 3.2 实践
+
+实例：变形金刚
+
+变形金刚在变形之前是一辆汽车，它可以在陆地上**移动**。当它变成机器人之后除了能够在陆地上移动之外，还可以**说话**；如果需要，它还可以变成飞机，除了在陆地上移动还可以在**天空中飞翔**。
+
+- 具有移动能力的变形金刚
+
+```java
+package decorator;
+
+public abstract class Transform {
+    public abstract void move();
+}
+```
+
+- 变成汽车
+
+```java
+package decorator;
+
+public class Car extends Transform {
+    @Override
+    public void move() {
+        System.out.println("car move");
+    }
+}
+```
+
+- 提供一个装饰者changer
+
+```java
+package decorator;
+
+public abstract class Changer extends Transform{
+    public abstract void move();
+}
+```
+
+- 变成机器人：
+
+```java
+package decorator;
+
+public class Robot extends Changer {
+    private Transform transform;
+
+    public Robot(Transform transform) {
+        this.transform = transform;
+    }
+
+    @Override
+    public void move() {
+        System.out.println("robot move.");
+    }
+
+    // 扩展方法
+    public void say() {
+        System.out.println("I'm a robot now.");
+    }
+
+}
+```
+
+- 变成飞机
+
+```java
+package decorator;
+
+public class AirPlane extends Changer {
+    private Transform transform;
+
+    public AirPlane(Transform transform) {
+        this.transform = transform;
+    }
+
+    @Override
+    public void move() {
+        System.out.println("airplane move");
+    }
+
+    // 扩展方法
+    public void fly() {
+        System.out.println("I can fly.");
+    }
+}
+```
+
+测试一下：
+
+```java
+package decorator;
+
+import org.junit.Test;
+
+public class TestEntrance {
+    @Test
+    public void test() {
+        Transform transform = new Car();
+        transform.move();
+
+        Robot robot = new Robot(transform);
+        robot.say();
+        robot.move();
+
+        AirPlane airPlane = new AirPlane(transform);
+        airPlane.fly();
+        airPlane.move();
+    }
+}
+```
+
+执行结果：
+
+> car move
+I'm a robot now.
+robot move.
+I can fly.
+airplane move
+> 
+
+JDK中的装饰者模式：
+
+```java
+BufferedReader input = new BufferedReader(new InputStreamReader(System.in));
+```
+
+## **3.3 优点**
+
+装饰模式的优点:
+
+- 装饰模式与继承关系的目的都是要扩展对象的功能，但是装饰模式可以提供比继承更多的灵活性。
+- 可以通过一种动态的方式来扩展一个对象的功能，通过配置文件可以在运行时选择不同的装饰器，从而实现不同的行为。
+- 通过使用不同的具体装饰类以及这些装饰类的排列组合，可以创造出很多不同行为的组合。可以使用多个具体装饰类来装饰同一对象，得到功能更为强大的对象。
+- 具体构件类与具体装饰类可以独立变化，用户可以根据需要增加新的具体构件类和具体装饰类，在使用时再对其进行组合，原有代码无须改变，符合“开闭原则”
+
+## **3.4 缺点**
+
+装饰模式的缺点:
+
+- 使用装饰模式进行系统设计时将产生很多小对象，这些对象的区别在于它们之间相互连接的方式有所不同，而不是它们的类或者属性值有所不同，同时还将产生很多具体装饰类。这些装饰类和小对象的产生将增加系统的复杂度，加大学习与理解的难度。
+- 这种比继承更加灵活机动的特性，也同时意味着装饰模式比继承更加易于出错，排错也很困难，对于多次装饰的对象，调试时寻找错误可能需要逐级排查，较为烦琐。
+
+# 4、外观模式
+
+## 4.1 定义
+
+<aside>
+🥝 外观模式(Facade Pattern)：**`外部与一个子系统的通信必须通过一个统一的外观对象进行`**，为子系统中的一组接口提供一个一致的界面，外观模式定义了一个高层接口，这个接口使得这一子系统更加容易使用。外观模式又称为**`门面模式`**，它是一种对象结构型模式。
+
+</aside>
+
+外观模式包含如下角色：
+
+- Facade: 外观角色
+- SubSystem:子系统角色
+
+- UML图
+
+![Facade.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/Facade.jpg)
+
+- **时序图**
+
+![seq_Facade.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/seq_Facade.jpg)
+
+## 4.2 实践
+
+假设一台电脑，它包含了 CPU（处理器），Memory（内存） ，Disk（硬盘）这几个部件，若想要启动电脑，则先后必须启动 CPU、Memory、Disk。关闭也是如此。
+
+**SubSystem 子系统角色：**
+
+- CPU
+
+```java
+package facadepattern.subsystem;
+
+public class CPU {
+    public void startup() {
+        System.out.println("cpu startup!");
+    }
+
+    public void shutdown() {
+        System.out.println("cpu shutdown!");
+    }
+}
+```
+
+- Disk
+
+```java
+package facadepattern.subsystem;
+
+public class Disk {
+    public void startup() {
+        System.out.println("disk startup!");
+    }
+
+    public void shutdown() {
+        System.out.println("disk shutdown!");
+    }
+}
+```
+
+- Memery
+
+```java
+package facadepattern.subsystem;
+
+public class Memory {
+    public void startup() {
+        System.out.println("memory startup!");
+    }
+
+    public void shutdown() {
+        System.out.println("memory shutdown!");
+    }
+}
+```
+
+**Facade 外观角色:**
+
+```java
+package facadepattern.facade;
+
+import facadepattern.subsystem.CPU;
+import facadepattern.subsystem.Disk;
+import facadepattern.subsystem.Memory;
+
+public class Computer {
+    private CPU cpu;
+    private Memory memory;
+    private Disk disk;
+
+    public Computer() {
+        cpu = new CPU();
+        memory = new Memory();
+        disk = new Disk();
+    }
+
+    public void startup() {
+        System.out.println("computer is starting...");
+        cpu.startup();
+        memory.startup();
+        disk.startup();
+        System.out.println("computer started!");
+    }
+
+    public void shutdown() {
+        System.out.println("computer is shutting down...");
+        cpu.shutdown();
+        memory.shutdown();
+        disk.shutdown();
+        System.out.println("computer has shut down!");
+    }
+}
+```
+
+测试一下：
+
+```java
+package facadepattern;
+
+import facadepattern.facade.Computer;
+import org.junit.Test;
+
+public class TestEntrance {
+    @Test
+    public void test() {
+        Computer computer = new Computer();
+        computer.startup();
+        System.out.println("------");
+        computer.shutdown();
+    }
+}
+```
+
+执行结果：
+
+> computer is starting...
+cpu startup!
+memory startup!
+disk startup!
+computer started!
+> 
+
+---
+
+> computer is shutting down...
+cpu shutdown!
+memory shutdown!
+disk shutdown!
+computer has shut down!
+> 
+
+## **4.3 优点**
+
+外观模式的优点
+
+- 对客户屏蔽子系统组件，减少了客户处理的对象数目并使得子系统使用起来更加容易。通过引入外观模式，客户代码将变得很简单，与之关联的对象也很少。
+- 实现了子系统与客户之间的松耦合关系，这使得子系统的组件变化不会影响到调用它的客户类，只需要调整外观类即可。
+- 降低了大型软件系统中的编译依赖性，并简化了系统在不同平台之间的移植过程，因为编译一个子系统一般不需要编译所有其他的子系统。一个子系统的修改对其他子系统没有任何影响，而且子系统内部变化也不会影响到外观对象。
+- 只是提供了一个访问子系统的统一入口，并不影响用户直接使用子系统类。
+
+## **4.4 缺点**
+
+外观模式的缺点
+
+- 不能很好地限制客户使用子系统类，如果对客户访问子系统类做太多的限制则减少了可变性和灵活性。
+- 在不引入抽象外观类的情况下，增加新的子系统可能需要修改外观类或客户端的源代码，`**违背了“开闭原则”**`。
+
+# 5、享元模式
+
+## 5.1 定义
+
+<aside>
+🥝 享元模式(Flyweight Pattern)：运用共享技术有效地支持大量细粒度对象的复用。系统只使用少量的对象，而这些对象都很相似，状态变化很小，可以实现对象的多次复用。由于享元模式要求能够共享的对象必须是细粒度对象，因此它又称为轻量级模式，它是一种对象结构型模式。
+
+</aside>
+
+享元模式包含如下角色：
+
+- Flyweight: 抽象享元类
+- ConcreteFlyweight: 具体享元类
+- UnsharedConcreteFlyweight: 非共享具体享元类
+- FlyweightFactory: 享元工厂类
+
+- **UML图**
+
+![Flyweight.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/Flyweight.jpg)
+
+- **时序图**
+
+![seq_Flyweight.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/seq_Flyweight.jpg)
+
+- 首先我们定义一个享元抽象类
+
+```java
+package flyweight;
+
+public abstract class Flyweight {
+    public abstract void operate();
+
+}
+```
+
+- 再实现一个具体的享元类
+
+```java
+package flyweight;
+
+public class ConcreteFlyweight extends Flyweight{
+    private String state;
+
+    public ConcreteFlyweight(String state) {
+        this.state = state;
+    }
+    @Override
+    public void operate() {
+        System.out.println("Flyweight[" + state + "] 的operate在工作");
+    }
+
+}
+```
+
+- 实现一个享元工厂类
+
+```java
+package flyweight;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class FlyweightFactory {
+    Map<String, Flyweight> flyweightMap = new HashMap<>();
+
+    public Flyweight getFlyweight(String str) {
+        if (flyweightMap.get(str) == null) {
+            Flyweight fw = new ConcreteFlyweight(str);
+            flyweightMap.put(str, fw);
+            return fw;
+        } else {
+            System.out.println("享元池中已经存在，直接使用");
+            return flyweightMap.get(str);
+        }
+    }
+}
+```
+
+我们来测试一下：
+
+```java
+package flyweight;
+
+import org.junit.Test;
+
+public class TestEntrance {
+    @Test
+    public void test() {
+        FlyweightFactory flyweightFactory = new FlyweightFactory();
+
+        Flyweight fw1 =  flyweightFactory.getFlyweight("one");
+        fw1.operate();
+
+        Flyweight fw2 = flyweightFactory.getFlyweight("two");
+        fw2.operate();
+
+        Flyweight fw3 = flyweightFactory.getFlyweight("one");
+        fw3.operate();
+
+    }
+}
+```
+
+执行结果：
+
+> Flyweight[one] 的operate在工作
+Flyweight[two] 的operate在工作
+享元池中已经存在，直接使用
+Flyweight[one] 的operate在工作
+> 
+
+可见，享元模式中，我们实现了已经有的对象的复用——在享元池中直接获取已存在的对象。
+
+## 5.2 **优点**
+
+享元模式的优点
+
+- 享元模式的优点在于它可以极大减少内存中对象的数量，使得相同对象或相似对象在内存中只保存一份。
+- 享元模式的外部状态相对独立，而且不会影响其内部状态，从而使得享元对象可以在不同的环境中被共享。
+
+## **5.3 缺点**
+
+享元模式的缺点
+
+- 享元模式使得系统更加复杂，需要分离出内部状态和外部状态，这使得程序的逻辑复杂化。
+- 为了使对象可以共享，享元模式需要将享元对象的状态外部化，而读取外部状态使得运行时间变长。
+
+## 5.4 **模式应用**
+
+享元模式在编辑器软件中大量使用，如在一个文档中多次出现相同的图片，则只需要创建一个图片对象，通过在应用程序中设置该图片出现的位置，可以实现该图片在不同地方多次重复显示。
+
+# 6、代理**模式**
+
+在某些情况下，一个客户不想或者不能直接引用一个对 象，此时可以通过一个称之为“代理”的第三者来实现 间接引用。
+
+**代理对象可以在客户端和目标对象之间起到 中介的作用**，**并且可以通过代理对象去掉客户不能看到 的内容和服务或者添加客户需要的额外服务（如特性增强）**。
+
+通过引入一个新的对象（如小图片和远程代理 对象）来实现对真实对象的操作或者将新的对象作为真实对象的一个**`替身`**，这种实现机制即为代理模式，**通过引入代理对象来间接访问一个对象，这就是代理模式的模式动机**。
+
+## 6.1 定义
+
+<aside>
+🥝 代理模式(Proxy Pattern) ：给某一个对象提供一个代理，并由代理对象控制对原对象的引用。
+
+</aside>
+
+代理模式包含如下角色：
+
+- Subject: 抽象主题角色
+- Proxy: 代理主题角色
+- RealSubject: 真实主题角色
+
+- **UML图**
+
+![Proxy.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/Proxy.jpg)
+
+- **时序图**
+
+![seq_Proxy.jpg](0011%20%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F%E4%B9%8B%E7%BB%93%E6%9E%84%E5%9E%8B%E6%A8%A1%E5%BC%8F%20b503293ba6634baabde31fcbc8867217/seq_Proxy.jpg)
+
+## 6.2 实践
+
+- 实现一个被代理的对象subject，其功能是发送一个请求。
+
+```java
+package proxy;
+
+public class Subject {
+    public void request() {
+        System.out.println("这是真实发出的请求");
+    }
+}
+```
+
+- 为subject创建一个代理类proxy：
+
+```java
+package proxy;
+
+public class Proxy extends Subject {
+    @Override
+    public void request() {
+        preRequest();
+        super.request();
+        afterRequest();
+    }
+
+    private void preRequest() {
+        System.out.println("preRequest：发送请求前先处理一下");
+    }
+
+    private void afterRequest() {
+        System.out.println("afterRequest: 请求完再处理一下");
+    }
+}
+```
+
+测试一下：
+
+```java
+package proxy;
+
+import org.junit.Test;
+
+public class TestEntrance {
+    @Test
+    public void test() {
+        Proxy proxy = new Proxy();
+        proxy.request();
+    }
+}
+```
+
+执行结果：
+
+> preRequest：发送请求前先处理一下
+这是真实发出的请求
+afterRequest: 请求完再处理一下
+> 
+
+可见，我们对subject做了代理后，在代理中可以插入一些方法，实现其他目的。
+
+## 6.3 **优点**
+
+代理模式的优点
+
+- 代理模式能够协调调用者和被调用者，在一定程度上降低了系 统的耦合度。
+- 远程代理使得客户端可以访问在远程机器上的对象，远程机器 可能具有更好的计算性能与处理速度，可以快速响应并处理客户端请求。
+- 虚拟代理通过使用一个小对象来代表一个大对象，可以减少系 统资源的消耗，对系统进行优化并提高运行速度。
+- 保护代理可以控制对真实对象的使用权限。
+
+## **6.4 缺点**
+
+代理模式的缺点
+
+- 由于在客户端和真实主题之间增加了代理对象，因此 有些类型的代理模式可能会造成请求的处理速度变慢。
+- 实现代理模式需要额外的工作，有些代理模式的实现 非常复杂。
+
+## 6.5 **适用环境**
+
+根据代理模式的使用目的，常见的代理模式有以下几种类型：
+
+- 远程(Remote)代理：为一个位于不同的地址空间的对象提供一个本地 的代理对象，这个不同的地址空间可以是在同一台主机中，也可是在 另一台主机中，远程代理又叫做大使(Ambassador)。
+- 虚拟(Virtual)代理：如果需要创建一个资源消耗较大的对象，先创建一个消耗相对较小的对象来表示，真实对象只在需要时才会被真正创建。
+- Copy-on-Write代理：它是虚拟代理的一种，把复制（克隆）操作延迟 到只有在客户端真正需要时才执行。一般来说，对象的深克隆是一个 开销较大的操作，Copy-on-Write代理可以让这个操作延迟，只有对象被用到的时候才被克隆。
+- 保护(Protect or Access)代理：控制对一个对象的访问，可以给不同的用户提供不同级别的使用权限。
+- 缓冲(Cache)代理：为某一个目标操作的结果提供临时的存储空间，以便多个客户端可以共享这些结果。
+- 防火墙(Firewall)代理：保护目标不让恶意用户接近。
+- 同步化(Synchronization)代理：使几个用户能够同时使用一个对象而没有冲突。
+- 智能引用(Smart Reference)代理：当一个对象被引用时，提供一些额外的操作，如将此对象被调用的次数记录下来等。
+
+## **6.6** 动态代理
+
+- 动态代理是一种较为高级的代理模式，它的典型应用就是Spring AOP。
+- 在传统的代理模式中，客户端通过Proxy调用RealSubject类的request()方法，同时还在代理类中封装了其他方法(如preRequest()和postRequest())，可以处理一些其他问题。
+- 如果按照这种方法使用代理模式，那么真实主题角色必须是事先已经存在的，并将其作为代理对象的内部成员属性。如果一个真实主题角色必须对应一个代理主题角色，这将导致系统中的类个数急剧增加，因此需要想办法减少系统中类的个数，此外，如何在事先不知道真实主题角色的情况下使用代理主题角色，这都是动态代理需要解决的问题。
+
+以上就是6种结构型模式的内容。
+
